@@ -1,0 +1,9 @@
+{
+	"name": "cloudpanthiadlsv2",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d75c757f-bfb5-4616-b55f-5a032a932441",
+		"tenantId": "94a5c9fc-05fd-4434-a10b-7540af7c5cd4"
+	}
+}
