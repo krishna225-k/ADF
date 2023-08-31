@@ -1,0 +1,26 @@
+{
+	"name": "DS_abs_sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ABS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sinkcontainer": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": {
+					"value": "@dataset().sinkcontainer",
+					"type": "Expression"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

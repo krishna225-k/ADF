@@ -1,0 +1,183 @@
+{
+	"name": "PL_data_filecount",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_to_get_containerlist",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "DS_ABS_containerlist",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_container",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_to_get_containerlist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_to_get_containerlist').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "getchilditems",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DS_abs_childitems",
+									"type": "DatasetReference",
+									"parameters": {
+										"sourcecontainername": {
+											"value": "@item().sourcecontainername",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"childItems"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "IF_filecount_is_zero",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "getchilditems",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@greater(length(activity('getchilditems').output.childItems),0)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Waitaing",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 30
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "copy_blob_blob",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "BinarySource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true
+												},
+												"formatSettings": {
+													"type": "BinaryReadSettings"
+												}
+											},
+											"sink": {
+												"type": "BinarySink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_abs_source",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourcecontainername": "@item().sourcecontainername"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_abs_sink",
+												"type": "DatasetReference",
+												"parameters": {
+													"sinkcontainer": {
+														"value": "@item().targetcontainername",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-08-31T06:35:47Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

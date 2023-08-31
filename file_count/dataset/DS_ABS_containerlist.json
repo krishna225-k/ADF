@@ -1,0 +1,33 @@
+{
+	"name": "DS_ABS_containerlist",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ABS",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "containerinfo.csv",
+				"container": "metadata"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "source container",
+				"type": "String"
+			},
+			{
+				"name": "dst container",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
