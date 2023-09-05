@@ -1,0 +1,12 @@
+{
+	"name": "LS_ASQLDB",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=cloudsqldb01.database.windows.net;initial catalog=cloudpanthi;user id=sqladmin",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDhFOUNBMzRDLTczMjUtNDk4NS05NjdBLTU1ODdGRjQ4Q0IxMV9hZWE3ZDY1OC1jNzk3LTQxMDAtOWUxNy04YWY4N2Q2Y2YzYzUiDQp9"
+		}
+	}
+}
