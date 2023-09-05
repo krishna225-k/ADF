@@ -1,0 +1,17 @@
+{
+	"name": "DS_ASDB_fullsink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ASQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "cust_full"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
