@@ -1,0 +1,180 @@
+{
+	"name": "PL_data_multitable_to_blob",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_table_list",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select * from cloudpandithtables where is_active=1",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_ASQLDB",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_table_list",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_table_list').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Get_Metadata_Exits",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DS_asqldb_getmetadata",
+									"type": "DatasetReference",
+									"parameters": {
+										"sourcetablename": {
+											"value": "@item().sourcetable",
+											"type": "Expression"
+										},
+										"sourceschemaname": {
+											"value": "@item().sourceschema",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								]
+							}
+						},
+						{
+							"name": "If Condition_table_available_or_not",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Get_Metadata_Exits",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(activity('Get_Metadata_Exits').output.exists,true)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 10
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Copy_sqldb_to_blob",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".csv"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_asqldb_getmetadata",
+												"type": "DatasetReference",
+												"parameters": {
+													"sourcetablename": "@item().sourcetable",
+													"sourceschemaname": "@item().sourceschema"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_ABS_sink",
+												"type": "DatasetReference",
+												"parameters": {
+													"sinkcontainername": "@item().sinkcontainername",
+													"sinkfilename": "@item().sinkfilename"
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}

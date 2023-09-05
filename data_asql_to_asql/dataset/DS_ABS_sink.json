@@ -1,0 +1,37 @@
+{
+	"name": "DS_ABS_sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_abs",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sinkcontainername": {
+				"type": "string"
+			},
+			"sinkfilename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().sinkfilename",
+					"type": "Expression"
+				},
+				"container": {
+					"value": "@dataset().sinkcontainername",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

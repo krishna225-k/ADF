@@ -1,0 +1,30 @@
+{
+	"name": "DS_asqldb_getmetadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ASQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"sourcetablename": {
+				"type": "string"
+			},
+			"sourceschemaname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().sourceschemaname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().sourcetablename",
+				"type": "Expression"
+			}
+		}
+	}
+}
