@@ -1,0 +1,37 @@
+{
+	"name": "DS_ASQLDB_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ASQLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "custid",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "custname",
+				"type": "varchar"
+			},
+			{
+				"name": "custphno",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "custjoined",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "cust"
+		}
+	}
+}
