@@ -11,9 +11,9 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_ASQLDB'"
 		},
-		"LS_ABS_connectionString": {
+		"LS_BLOB_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_ABS'"
+			"metadata": "Secure string for 'connectionString' of 'LS_BLOB'"
 		},
 		"containerUri": {
 			"type": "string",
@@ -45,8 +45,8 @@
 					"LS_ASQLDB_connectionString": {
 						"value": "[parameters('LS_ASQLDB_connectionString')]"
 					},
-					"LS_ABS_connectionString": {
-						"value": "[parameters('LS_ABS_connectionString')]"
+					"LS_BLOB_connectionString": {
+						"value": "[parameters('LS_BLOB_connectionString')]"
 					}
 				}
 			},

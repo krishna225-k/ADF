@@ -8,7 +8,7 @@
 		"LS_ASQLDB_connectionString": {
 			"value": ""
 		},
-		"LS_ABS_connectionString": {
+		"LS_BLOB_connectionString": {
 			"value": ""
 		}
 	}
