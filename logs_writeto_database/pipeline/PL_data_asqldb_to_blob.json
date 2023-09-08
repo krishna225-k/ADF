@@ -1,0 +1,430 @@
+{
+	"name": "PL_data_asqldb_to_blob",
+	"properties": {
+		"activities": [
+			{
+				"name": "cloudpandith_copy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_asqldb_source",
+						"type": "DatasetReference",
+						"parameters": {
+							"sourcetablename": {
+								"value": "@pipeline().parameters.pptablename",
+								"type": "Expression"
+							},
+							"schemaname": {
+								"value": "@pipeline().parameters.ppschemaname",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_Json_sink",
+						"type": "DatasetReference",
+						"parameters": {
+							"sinkcontainer": {
+								"value": "@pipeline().parameters.ppcontainername",
+								"type": "Expression"
+							},
+							"sinkfilename": {
+								"value": "@pipeline().parameters.ppfilename",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "success_Stored_procedure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "cloudpandith_copy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[pipeline_log_usp]",
+					"storedProcedureParameters": {
+						"copyActivity_end_time": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').executionEndtime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"copyActivity_start_time": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').executionStarttime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"CopyDuration_in_sec": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.copyDuration",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"DataFactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Desination": {
+							"value": {
+								"value": "@pipeline().parameters.ppcontainername",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"effectiveIntegrationRuntime": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.effectiveIntegrationRuntime",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Error_message": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').error",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Execution_status": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').status",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Execution_status_code": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').statuscode",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"No_ParallelCopies": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.usedparallelcopies",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"rowscopied": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.rowscopied",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"RowsRead": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.rowsread",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"sink_type": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionDetails[0].sink.type",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"source": {
+							"value": {
+								"value": "@concat(pipeline().parameters.ppschemaname,'.',pipeline().parameters.pptablename)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"source_type": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionDetails[0].source.type",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerId": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerTime": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "DS_Asql_db",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "failed_Stored_procedure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "cloudpandith_copy",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[pipeline_log_usp]",
+					"storedProcedureParameters": {
+						"copyActivity_end_time": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionEndtime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"copyActivity_start_time": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionStarttime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"CopyDuration_in_sec": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.copyDuration",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"DataFactory_Name": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Desination": {
+							"value": {
+								"value": "@pipeline().parameters.ppcontainername",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"effectiveIntegrationRuntime": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.effectiveIntegrationRuntime",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Error_message": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').error",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Execution_status": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').status",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"Execution_status_code": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').statuscode",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"No_ParallelCopies": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.usedparallelcopies",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"Pipeline_Name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"rowscopied": {
+							"type": "Int32"
+						},
+						"RowsRead": {
+							"type": "Int32"
+						},
+						"RunId": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"sink_type": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionDetails[0].sink.type",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"source": {
+							"value": {
+								"value": "@concat(pipeline().parameters.ppschemaname,'.',pipeline().parameters.pptablename)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"source_type": {
+							"value": {
+								"value": "@activity('cloudpandith_copy').output.executionDetails[0].source.type",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerId": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerTime": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "DS_Asql_db",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"ppschemaname": {
+				"type": "string"
+			},
+			"pptablename": {
+				"type": "string"
+			},
+			"ppcontainername": {
+				"type": "string"
+			},
+			"ppfilename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-09-08T09:48:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
