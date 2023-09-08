@@ -7,13 +7,13 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "cloudpanthiadfv2"
 		},
-		"LS_ASQLDB_connectionString": {
+		"DS_Asql_db_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_ASQLDB'"
+			"metadata": "Secure string for 'connectionString' of 'DS_Asql_db'"
 		},
-		"LS_BLOB_connectionString": {
+		"LS_abs_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_BLOB'"
+			"metadata": "Secure string for 'connectionString' of 'LS_abs'"
 		},
 		"containerUri": {
 			"type": "string",
@@ -42,11 +42,11 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS_ASQLDB_connectionString": {
-						"value": "[parameters('LS_ASQLDB_connectionString')]"
+					"DS_Asql_db_connectionString": {
+						"value": "[parameters('DS_Asql_db_connectionString')]"
 					},
-					"LS_BLOB_connectionString": {
-						"value": "[parameters('LS_BLOB_connectionString')]"
+					"LS_abs_connectionString": {
+						"value": "[parameters('LS_abs_connectionString')]"
 					}
 				}
 			},

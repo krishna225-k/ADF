@@ -5,10 +5,10 @@
 		"factoryName": {
 			"value": "cloudpanthiadfv2"
 		},
-		"LS_ASQLDB_connectionString": {
+		"DS_Asql_db_connectionString": {
 			"value": ""
 		},
-		"LS_BLOB_connectionString": {
+		"LS_abs_connectionString": {
 			"value": ""
 		}
 	}
