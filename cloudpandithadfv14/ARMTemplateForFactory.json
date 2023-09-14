@@ -7,9 +7,9 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "cloudpandithadfv14"
 		},
-		"LS_asqldb_connectionString": {
+		"ls_asqldb_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_asqldb'"
+			"metadata": "Secure string for 'connectionString' of 'ls_asqldb'"
 		},
 		"ls_blob_connectionString": {
 			"type": "secureString",
@@ -21,84 +21,13 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_data_sqldb_blob')]",
+			"name": "[concat(parameters('factoryName'), '/pl_data_sqldb_to_blob_multiple')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "copy_sqldb_blob",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Lookup_getmaxvalue",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							},
-							{
-								"activity": "Lookup_LPV",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "select * from cust where cid>@{activity('Lookup_LPV').output.firstRow.last_precessed_value}",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_asqldb_generic",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_BLOB",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Lookup_getmaxvalue",
+						"name": "Lookup_gettablelist",
 						"type": "Lookup",
 						"dependsOn": [],
 						"policy": {
@@ -112,85 +41,179 @@
 						"typeProperties": {
 							"source": {
 								"type": "AzureSqlSource",
-								"sqlReaderQuery": "select max(cid)  as maxvalue from cust",
+								"sqlReaderQuery": "select * from metadata",
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
 							"dataset": {
-								"referenceName": "ds_asqldb_generic",
+								"referenceName": "DS_asqldb",
 								"type": "DatasetReference",
 								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "Lookup_LPV",
-						"description": "",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "select * from watermartk where tablename='cust'",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
 							},
-							"dataset": {
-								"referenceName": "ds_asqldb_generic",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
+							"firstRowOnly": false
 						}
 					},
 					{
-						"name": "Stored procedure1",
-						"type": "SqlServerStoredProcedure",
+						"name": "ForEach_each_table",
+						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "copy_sqldb_blob",
+								"activity": "Lookup_gettablelist",
 								"dependencyConditions": [
 									"Succeeded"
 								]
 							}
 						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
 						"userProperties": [],
 						"typeProperties": {
-							"storedProcedureName": "[[dbo].[watermartk_usp]",
-							"storedProcedureParameters": {
-								"lpv": {
-									"value": {
-										"value": "@activity('Lookup_getmaxvalue').output.firstRow.maxvalue",
-										"type": "Expression"
+							"items": {
+								"value": "@activity('Lookup_gettablelist').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Lookup_maxvalue",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
 									},
-									"type": "String"
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "select max(@{item().deltacol}) as maxvalue from @{item().schemaname}.@{item().tablename}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "DS_asqldb",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
 								},
-								"tname": {
-									"value": {
-										"value": "@activity('Lookup_LPV').output.firstRow.tablename",
-										"type": "Expression"
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Lookup_maxvalue",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
 									},
-									"type": "String"
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "select * from @{item().schemaname}.@{item().tablename} where @{item().deltacol}>'@{item().last_precessed_value}'",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".csv"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_asqldb",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_blob",
+											"type": "DatasetReference",
+											"parameters": {
+												"foldername": {
+													"value": "@item().containername",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Stored procedure1",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[metadata_usp]",
+										"storedProcedureParameters": {
+											"lpv": {
+												"value": {
+													"value": "@activity('Lookup_maxvalue').output.firstRow.maxvalue",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"tablename": {
+												"value": {
+													"value": "@item().tablename",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_asqldb",
+										"type": "LinkedServiceReference"
+									}
 								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_asqldb",
-							"type": "LinkedServiceReference"
+							]
 						}
 					}
 				],
@@ -199,16 +222,34 @@
 					"cancelAfter": {}
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-09-14T06:10:09Z"
+				"lastPublishTime": "2023-09-14T15:14:12Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_asqldb_generic')]",
-				"[concat(variables('factoryId'), '/datasets/DS_BLOB')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_asqldb')]"
+				"[concat(variables('factoryId'), '/datasets/DS_asqldb')]",
+				"[concat(variables('factoryId'), '/datasets/DS_blob')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_asqldb')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DS_BLOB')]",
+			"name": "[concat(parameters('factoryName'), '/DS_asqldb')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_asqldb",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_asqldb')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_blob')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -216,17 +257,20 @@
 					"referenceName": "ls_blob",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"foldername": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "cust.csv",
-						"folderPath": {
-							"value": "@{formatDateTime(utcNow(),'yyyy')}/@{formatDateTime(utcNow(),'mm')}/@{formatDateTime(utcNow(),'dd')}",
+						"container": {
+							"value": "@dataset().foldername",
 							"type": "Expression"
-						},
-						"container": "jsondata"
+						}
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -240,32 +284,14 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_asqldb_generic')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_asqldb",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_asqldb')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_asqldb')]",
+			"name": "[concat(parameters('factoryName'), '/ls_asqldb')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"connectionString": "[parameters('LS_asqldb_connectionString')]"
+					"connectionString": "[parameters('ls_asqldb_connectionString')]"
 				}
 			},
 			"dependsOn": []

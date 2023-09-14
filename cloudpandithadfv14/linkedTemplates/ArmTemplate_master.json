@@ -7,9 +7,9 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "cloudpandithadfv14"
 		},
-		"LS_asqldb_connectionString": {
+		"ls_asqldb_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'LS_asqldb'"
+			"metadata": "Secure string for 'connectionString' of 'ls_asqldb'"
 		},
 		"ls_blob_connectionString": {
 			"type": "secureString",
@@ -42,8 +42,8 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"LS_asqldb_connectionString": {
-						"value": "[parameters('LS_asqldb_connectionString')]"
+					"ls_asqldb_connectionString": {
+						"value": "[parameters('ls_asqldb_connectionString')]"
 					},
 					"ls_blob_connectionString": {
 						"value": "[parameters('ls_blob_connectionString')]"

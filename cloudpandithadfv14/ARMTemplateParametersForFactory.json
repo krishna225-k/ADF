@@ -5,7 +5,7 @@
 		"factoryName": {
 			"value": "cloudpandithadfv14"
 		},
-		"LS_asqldb_connectionString": {
+		"ls_asqldb_connectionString": {
 			"value": ""
 		},
 		"ls_blob_connectionString": {
