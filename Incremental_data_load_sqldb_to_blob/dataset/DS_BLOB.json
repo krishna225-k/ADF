@@ -1,0 +1,28 @@
+{
+	"name": "DS_BLOB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "cust.csv",
+				"folderPath": {
+					"value": "@{formatDateTime(utcNow(),'yyyy')}/@{formatDateTime(utcNow(),'mm')}/@{formatDateTime(utcNow(),'dd')}",
+					"type": "Expression"
+				},
+				"container": "jsondata"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
